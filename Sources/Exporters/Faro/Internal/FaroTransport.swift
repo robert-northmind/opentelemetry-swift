@@ -84,8 +84,12 @@ final class FaroTransport: FaroTransportable {
       if let httpResponse = response as? HTTPURLResponse {
         let statusCode = httpResponse.statusCode
         if statusCode < 200 || statusCode >= 300 {
-          let responseData = data != nil ? String(data: data!, encoding: .utf8) : nil
-          self.logger.logError("FaroTransport: HTTP error: status=\(statusCode), response=\(responseData ?? "nil")", error: nil)
+          let responseData = if let data = data {
+            String(data: data, encoding: .utf8) ?? "nil"
+          } else {
+            "nil"
+          }
+          self.logger.logError("FaroTransport: HTTP error: status=\(statusCode), response=\(responseData)", error: nil)
           completion(.failure(FaroTransportError.httpError(statusCode, responseData)))
           return
         }
