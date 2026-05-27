@@ -7,8 +7,9 @@ import Foundation
 
 /// Configuration object for session management settings.
 ///
-/// Controls session behavior including timeout duration and expiration handling.
-/// Sessions automatically expire after the specified timeout period of inactivity.
+/// Controls session behavior including timeout duration, maximum lifetime, and persistence.
+/// Sessions automatically expire after the specified timeout period of inactivity and can
+/// optionally expire after a maximum lifetime.
 ///
 /// Example:
 /// ```swift
@@ -18,6 +19,7 @@ import Foundation
 /// // Using builder pattern
 /// let config = SessionConfig.builder()
 ///   .with(sessionTimeout: 45 * 60)
+///   .with(maxLifetime: 4 * 60 * 60)
 ///   .build()
 /// 
 /// let manager = SessionManager(configuration: config)
@@ -25,13 +27,26 @@ import Foundation
 public struct SessionConfig: Sendable {
   /// Duration in seconds after which a session expires if left inactive
   public let sessionTimeout: TimeInterval
-  
+
+  /// Maximum duration in seconds a session can remain active, regardless of activity
+  public let maxLifetime: TimeInterval?
+
+  /// Whether a previously saved session should be restored when the manager starts
+  public let restorePersistedSession: Bool
+
   /// Creates a new session configuration
-  /// - Parameter sessionTimeout: Duration in seconds after which a session expires if left inactive (default 30 minutes)
-  public init(sessionTimeout: TimeInterval = 30 * 60) {
+  /// - Parameters:
+  ///   - sessionTimeout: Duration in seconds after which a session expires if left inactive (default 30 minutes)
+  ///   - maxLifetime: Maximum duration in seconds a session can remain active, regardless of activity (default disabled)
+  ///   - restorePersistedSession: Whether a previously saved session should be restored when the manager starts (default true)
+  public init(sessionTimeout: TimeInterval = 30 * 60,
+              maxLifetime: TimeInterval? = nil,
+              restorePersistedSession: Bool = true) {
     self.sessionTimeout = sessionTimeout
+    self.maxLifetime = maxLifetime
+    self.restorePersistedSession = restorePersistedSession
   }
-  
+
   /// Default configuration with 30-minute session timeout
   public static let `default` = SessionConfig()
 }
@@ -48,7 +63,9 @@ public struct SessionConfig: Sendable {
 /// ```
 public class SessionConfigBuilder {
   public private(set) var sessionTimeout: TimeInterval = 30 * 60
-  
+  public private(set) var maxLifetime: TimeInterval?
+  public private(set) var restorePersistedSession = true
+
   /// Sets the session timeout duration
   /// - Parameter sessionTimeout: Duration in seconds after which a session expires if left inactive
   /// - Returns: The builder instance for method chaining
@@ -56,11 +73,31 @@ public class SessionConfigBuilder {
     self.sessionTimeout = sessionTimeout
     return self
   }
-  
+
+  /// Sets the maximum duration a session can remain active
+  /// - Parameter maxLifetime: Maximum duration in seconds a session can remain active, regardless of activity
+  /// - Returns: The builder instance for method chaining
+  public func with(maxLifetime: TimeInterval?) -> Self {
+    self.maxLifetime = maxLifetime
+    return self
+  }
+
+  /// Sets whether a previously saved session should be restored when the manager starts
+  /// - Parameter restorePersistedSession: Whether persisted sessions should be restored
+  /// - Returns: The builder instance for method chaining
+  public func with(restorePersistedSession: Bool) -> Self {
+    self.restorePersistedSession = restorePersistedSession
+    return self
+  }
+
   /// Builds the SessionConfig with the configured settings
   /// - Returns: A new SessionConfig instance
   public func build() -> SessionConfig {
-    return SessionConfig(sessionTimeout: sessionTimeout)
+    return SessionConfig(
+      sessionTimeout: sessionTimeout,
+      maxLifetime: maxLifetime,
+      restorePersistedSession: restorePersistedSession
+    )
   }
 }
 

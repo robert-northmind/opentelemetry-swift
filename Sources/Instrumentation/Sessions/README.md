@@ -129,13 +129,17 @@ print("Expired: \(session.isExpired())")
 
 ### SessionConfig
 
-| Field            | Type  | Description                                                        | Default         | Required |
-| ---------------- | ----- | ------------------------------------------------------------------ | --------------- | -------- |
-| `sessionTimeout` | `TimeInterval` | Duration in seconds after which a session expires if left inactive | `1800` (30 min) | No       |
+| Field                     | Type            | Description                                                                 | Default         | Required |
+| ------------------------- | --------------- | --------------------------------------------------------------------------- | --------------- | -------- |
+| `sessionTimeout`          | `TimeInterval`  | Duration in seconds after which a session expires if left inactive          | `1800` (30 min) | No       |
+| `maxLifetime`             | `TimeInterval?` | Maximum duration in seconds a session can remain active, regardless of activity | `nil` (disabled) | No       |
+| `restorePersistedSession` | `Bool`          | Whether the manager should restore a previously saved session at startup    | `true`          | No       |
 
 ```swift
-let config = SessionConfigBuilder()
+let config = SessionConfig.builder()
     .with(sessionTimeout: 30 * 60)
+    .with(maxLifetime: 4 * 60 * 60)
+    .with(restorePersistedSession: false)
     .build()
 ```
 
@@ -143,6 +147,8 @@ let config = SessionConfigBuilder()
 
 - Sessions automatically expire after the configured timeout period of inactivity
 - Accessing a session via `getSession()` extends the expiration time
+- Sessions can also expire after `maxLifetime`, even if `getSession()` continues to extend inactivity
+- Set `restorePersistedSession` to `false` to start a new session on each clean application start
 - Expired sessions trigger `session.end` events and create new sessions with `previous_id` links
 
 ## Session Events

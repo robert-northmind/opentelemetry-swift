@@ -57,6 +57,16 @@ final class SessionManagerTests: XCTestCase {
     XCTAssertGreaterThan(session2.startTime, session1.startTime)
   }
 
+  func testGetSessionExpiredByMaxLifetime() {
+    sessionManager = SessionManager(configuration: SessionConfig(sessionTimeout: 60 * 60, maxLifetime: 0))
+    let session1 = sessionManager.getSession()
+    let session2 = sessionManager.getSession()
+
+    XCTAssertNotEqual(session1.id, session2.id)
+    XCTAssertEqual(session2.previousId, session1.id)
+    XCTAssertGreaterThan(session1.expireTime, Date())
+  }
+
   func testGetSessionSavedToDisk() {
     let session = sessionManager.getSession()
     let savedId = UserDefaults.standard.object(forKey: SessionStore.idKey) as? String
@@ -64,6 +74,26 @@ final class SessionManagerTests: XCTestCase {
 
     XCTAssertEqual(session.id, savedId)
     XCTAssertEqual(session.sessionTimeout, TimeInterval(savedTimeout ?? -1))
+  }
+
+  func testRestorePersistedSessionFalseSkipsDiskRestore() {
+    let persistedSession = Session(
+      id: "persisted-session",
+      expireTime: Date(timeIntervalSinceNow: 60 * 60),
+      startTime: Date(),
+      sessionTimeout: 60 * 60
+    )
+    SessionStore.saveImmediately(session: persistedSession)
+
+    sessionManager = SessionManager(
+      configuration: SessionConfig(sessionTimeout: 60 * 60, restorePersistedSession: false)
+    )
+
+    XCTAssertNil(sessionManager.peekSession())
+
+    let newSession = sessionManager.getSession()
+    XCTAssertNotEqual(newSession.id, persistedSession.id)
+    XCTAssertNil(newSession.previousId)
   }
 
   func testLoadSessionMissingExpiry() {

@@ -17,7 +17,9 @@ public class SessionManager: @unchecked Sendable {
   /// - Parameter configuration: Session configuration settings
   public init(configuration: SessionConfig = .default) {
     self.configuration = configuration
-    restoreSessionFromDisk()
+    if configuration.restorePersistedSession {
+      restoreSessionFromDisk()
+    }
   }
 
   /// Gets the current session, creating or extending it as needed
@@ -72,7 +74,8 @@ public class SessionManager: @unchecked Sendable {
       expireTime: now.addingTimeInterval(Double(configuration.sessionTimeout)),
       previousId: session?.id,
       startTime: now,
-      sessionTimeout: configuration.sessionTimeout
+      sessionTimeout: configuration.sessionTimeout,
+      maxLifetime: configuration.maxLifetime
     )
   }
 
@@ -84,7 +87,8 @@ public class SessionManager: @unchecked Sendable {
       expireTime: Date(timeIntervalSinceNow: Double(configuration.sessionTimeout)),
       previousId: session.previousId,
       startTime: session.startTime,
-      sessionTimeout: configuration.sessionTimeout
+      sessionTimeout: configuration.sessionTimeout,
+      maxLifetime: session.maxLifetime
     )
   }
 
