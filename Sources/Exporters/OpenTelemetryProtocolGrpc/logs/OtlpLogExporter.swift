@@ -12,11 +12,14 @@ import OpenTelemetryApi
 import OpenTelemetryProtocolExporterCommon
 import OpenTelemetrySdk
 
-public class OtlpLogExporter: LogRecordExporter {
+public final class OtlpLogExporter: LogRecordExporter, @unchecked Sendable {
   let channel: GRPCChannel
-  var logClient: Opentelemetry_Proto_Collector_Logs_V1_LogsServiceNIOClient
+  let logClient: Opentelemetry_Proto_Collector_Logs_V1_LogsServiceNIOClient
   let config: OtlpConfiguration
-  var callOptions: CallOptions
+  // Immutable base options captured at init. `export` derives a per-call copy
+  // with the desired timeLimit rather than mutating a shared instance field,
+  // so concurrent calls cannot race on `callOptions`.
+  let callOptions: CallOptions
 
   public init(channel: GRPCChannel,
               config: OtlpConfiguration = OtlpConfiguration(),
@@ -46,11 +49,12 @@ public class OtlpLogExporter: LogRecordExporter {
       request.resourceLogs = LogRecordAdapter.toProtoResourceRecordLog(logRecordList: logRecords)
     }
     let timeout = min(explicitTimeout ?? TimeInterval.greatestFiniteMagnitude, config.timeout)
+    var perCallOptions = callOptions
     if timeout > 0 {
-      callOptions.timeLimit = TimeLimit.timeout(TimeAmount.nanoseconds(Int64(timeout.toNanoseconds)))
+      perCallOptions.timeLimit = TimeLimit.timeout(TimeAmount.nanoseconds(Int64(timeout.toNanoseconds)))
     }
 
-    let export = logClient.export(logRequest, callOptions: callOptions)
+    let export = logClient.export(logRequest, callOptions: perCallOptions)
     do {
       _ = try export.response.wait()
       return .success

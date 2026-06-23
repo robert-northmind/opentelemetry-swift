@@ -8,7 +8,7 @@ import OpenTelemetrySdk
 
 // a persistence exporter decorator for `LogRecords`.
 // specialization of `PersistenceExporterDecorator` for `LogExporter`.
-public class PersistenceLogExporterDecorator: LogRecordExporter {
+public final class PersistenceLogExporterDecorator: LogRecordExporter, @unchecked Sendable {
   struct LogRecordDecoratedExporter: DecoratedExporter {
     typealias SignalType = ReadableLogRecord
 
