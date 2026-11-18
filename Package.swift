@@ -40,6 +40,7 @@ let package = Package(
       targets: ["BaggagePropagationProcessor"]
     ),
     .library(name: "Sessions", targets: ["Sessions"]),
+    .library(name: "ScreenInstrumentation", targets: ["ScreenInstrumentation"]),
     .executable(name: "ConcurrencyContext", targets: ["ConcurrencyContext"]),
     .executable(name: "loggingTracer", targets: ["LoggingTracer"]),
     .executable(name: "StableMetricSample", targets: ["StableMetricSample"]),
@@ -178,6 +179,15 @@ let package = Package(
       exclude: ["README.md"]
     ),
     .target(
+      name: "ScreenInstrumentation",
+      dependencies: [
+        "OpenTelemetryApi",
+        "OpenTelemetrySdk",
+      ],
+      path: "Sources/Instrumentation/Screen",
+      exclude: ["README.md"]
+    ),
+    .target(
       name: "SharedTestUtils",
       dependencies: [
         "OpenTelemetryApi",
@@ -289,6 +299,14 @@ let package = Package(
         "OpenTelemetrySdk",
       ],
       path: "Tests/InstrumentationTests/SessionTests"
+    ),
+    .testTarget(
+      name: "ScreenInstrumentationTests",
+      dependencies: [
+        "ScreenInstrumentation",
+        "OpenTelemetrySdk",
+      ],
+      path: "Tests/InstrumentationTests/ScreenTests"
     ),
     .executableTarget(
       name: "ConcurrencyContext",
