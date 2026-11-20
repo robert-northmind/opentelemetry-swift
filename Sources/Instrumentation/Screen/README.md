@@ -7,7 +7,8 @@ With no code in the app's views, UIKit view controllers are named after their cl
 screens are named through SwiftUI modifiers, one line per `NavigationStack`, `TabView` or screen,
 or, opt-in, automatically after their view type. Manual calls cover anything else.
 
-The platform-independent core is covered by unit tests.
+The platform-independent core is covered by unit tests. `Examples/ScreenTrackingDemo` exercises
+every detection mechanism on a simulator or device.
 
 ## Telemetry
 
@@ -215,6 +216,10 @@ To avoid this:
 - If the other SDK has to start first, do not stop it while the app runs.
 
 Screen tracking never removes its own hooks, so it cannot break another SDK this way.
+
+The demo app in `Examples/ScreenTrackingDemo` has a stand-in RUM tool on its Inspector tab that
+hooks these methods the way some RUM SDKs do. It can start before or after screen tracking and be
+stopped at runtime, to check how the two interact.
 
 ## How the current screen is resolved
 
