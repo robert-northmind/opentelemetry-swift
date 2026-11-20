@@ -101,5 +101,7 @@ Tests/IntegrationTests/.derivedData/
 
 # The Hacker News demo project is checked in so the integration tests can build it
 !Examples/HackerNewsDemo/HackerNewsDemo.xcodeproj/
+!Examples/ScreenTrackingDemo/ScreenTrackingDemo.xcodeproj/
+!Examples/ScreenTrackingWatchDemo/ScreenTrackingWatchDemo.xcodeproj/
 Tests/IntegrationTests/.derivedData-*/
 Tests/IntegrationTests/.collector/
